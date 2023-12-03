@@ -11,7 +11,7 @@ test "day 1, part 1" {
         v += try getCalibrationValue(line);
     }
 
-    std.debug.print("{}\n", .{v});
+    std.debug.print("solution: {}\n", .{v});
 }
 
 fn getCalibrationValue(s: []const u8) !u32 {
@@ -39,7 +39,7 @@ test "day 1, part 2" {
         v += try getCalibrationValue2(line);
     }
 
-    std.debug.print("{}\n", .{v});
+    std.debug.print("solution: {}\n", .{v});
 }
 
 fn getCalibrationValue2(s: []const u8) !u32 {

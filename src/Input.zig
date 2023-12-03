@@ -18,7 +18,7 @@ pub const InputIterator = struct {
     allocator: std.mem.Allocator,
 
     pub fn init(buffer: []const u8, allocator: std.mem.Allocator) !InputIterator {
-        var it = try allocator.create(std.mem.SplitIterator(u8, .scalar));
+        const it = try allocator.create(std.mem.SplitIterator(u8, .scalar));
         it.* = std.mem.splitScalar(u8, buffer, '\n');
         return InputIterator{
             .it = it,
