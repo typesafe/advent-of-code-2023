@@ -2,7 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const Input = @import("Input.zig");
 
-test "day 2, part 1" {
+test "day 3, part 1" {
     var it = try Input.readLines("src/day3.txt", testing.allocator);
     defer it.deinit() catch unreachable;
 
@@ -24,24 +24,16 @@ test "day 2, part 1" {
                 candidateStart = x;
             }
 
-            if (candidateStart != null) {
-                if (!isDigit(line, x)) {
-                    const v = try std.fmt.parseInt(u32, line[candidateStart.?..x], 10);
+            if (candidateStart != null and (!isDigit(line, x) or x == line.len - 1)) {
+                const xx = if (!isDigit(line, x)) x else line.len;
 
-                    if (hasAdjacentDigits(list, y, candidateStart.?, x - 1)) {
-                        sum += v;
-                    }
+                const v = try std.fmt.parseInt(u32, line[candidateStart.?..xx], 10);
 
-                    candidateStart = null;
-                } else if (x == line.len - 1) {
-                    const v = try std.fmt.parseInt(u32, line[candidateStart.?..line.len], 10);
-
-                    if (hasAdjacentDigits(list, y, candidateStart.?, x)) {
-                        sum += v;
-                    }
-
-                    candidateStart = null;
+                if (hasAdjacentDigits(list, y, candidateStart.?, xx - 1)) {
+                    sum += v;
                 }
+
+                candidateStart = null;
             }
         }
     }
@@ -50,7 +42,7 @@ test "day 2, part 1" {
     try testing.expect(sum == 525119);
 }
 
-test "day 2, part 2" {
+test "day 3, part 2" {
     var list = std.ArrayList([]const u8).init(testing.allocator);
     defer list.deinit();
 
@@ -73,26 +65,17 @@ test "day 2, part 2" {
                 candidateStart = x;
             }
 
-            if (candidateStart != null) {
-                if (!isDigit(line, x)) {
-                    const v = try std.fmt.parseInt(u32, line[candidateStart.?..x], 10);
+            if (candidateStart != null and (!isDigit(line, x) or x == line.len - 1)) {
+                const xx = if (!isDigit(line, x)) x else line.len;
 
-                    if (hasAdjacentGear(list, y, candidateStart.?, x - 1)) |gear| {
-                        const current = gears.get(gear) orelse .{ 0, 1 };
-                        try gears.put(gear, .{ current[0] + 1, current[1] * v });
-                    }
+                const v = try std.fmt.parseInt(u32, line[candidateStart.?..xx], 10);
 
-                    candidateStart = null;
-                } else if (x == line.len - 1) {
-                    const v = try std.fmt.parseInt(u32, line[candidateStart.?..line.len], 10);
-
-                    if (hasAdjacentGear(list, y, candidateStart.?, x)) |gear| {
-                        const current = gears.get(gear) orelse .{ 0, 1 };
-                        try gears.put(gear, .{ current[0] + 1, current[1] * v });
-                    }
-
-                    candidateStart = null;
+                if (hasAdjacentGear(list, y, candidateStart.?, xx - 1)) |gear| {
+                    const current = gears.get(gear) orelse .{ 0, 1 };
+                    try gears.put(gear, .{ current[0] + 1, current[1] * v });
                 }
+
+                candidateStart = null;
             }
         }
     }

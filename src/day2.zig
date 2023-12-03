@@ -11,7 +11,7 @@ test "day 2, part 1" {
     while (it.next()) |line| {
         var idAndSets = std.mem.splitScalar(u8, line, ':');
         const identifier = idAndSets.next().?;
-        var sets = idAndSets.next().?;
+        const sets = idAndSets.next().?;
 
         var setsComply = true;
         var setIterator = std.mem.splitScalar(u8, sets, ';');
@@ -54,7 +54,7 @@ test "day 2, part 2" {
     while (it.next()) |line| {
         var idAndSets = std.mem.splitScalar(u8, line, ':');
         _ = idAndSets.next().?;
-        var sets = idAndSets.next().?;
+        const sets = idAndSets.next().?;
 
         var setIterator = std.mem.splitScalar(u8, sets, ';');
 
