@@ -1,7 +1,7 @@
 const std = @import("std");
 const testing = std.testing;
 
-pub fn readLines(path: []const u8, allocator: std.mem.Allocator) !InputIterator {
+pub fn readFile(path: []const u8, allocator: std.mem.Allocator) ![]const u8 {
     const file = try std.fs.cwd().openFile(path, .{});
     defer file.close();
 
@@ -9,7 +9,28 @@ pub fn readLines(path: []const u8, allocator: std.mem.Allocator) !InputIterator 
 
     _ = try file.readAll(buffer);
 
+    return buffer;
+}
+
+pub fn readLines(path: []const u8, allocator: std.mem.Allocator) !InputIterator {
+    const buffer = readFile(path, allocator);
+
     return InputIterator.init(buffer, allocator);
+}
+
+pub fn parseInts(iterator: anytype, comptime len: usize) [len]isize {
+    var result: [len]isize = undefined;
+    var it = iterator;
+    var i: u8 = 0;
+    while (it.next()) |v| {
+        result[i] = parseInt(v);
+        i += 1;
+    }
+    return result;
+}
+
+pub fn parseInt(s: []const u8) isize {
+    return std.fmt.parseInt(isize, s, 10) catch 0;
 }
 
 pub const InputIterator = struct {
