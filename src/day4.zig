@@ -3,22 +3,21 @@ const testing = std.testing;
 const Input = @import("Input.zig");
 
 test "day 4, part 1" {
-    var it = try Input.readLines("src/day4.txt", testing.allocator);
-    defer it.deinit() catch unreachable;
+    var cards = try Input.readLines("src/day4.txt", testing.allocator);
+    defer cards.deinit() catch unreachable;
 
     var sum: u32 = 0;
 
-    while (it.next()) |line| {
-        var headerAndDate = std.mem.splitScalar(u8, line, ':');
-        const header = headerAndDate.next().?;
-        _ = header;
-        const data = headerAndDate.next().?;
+    while (cards.next()) |card| {
+        var headerAndData = std.mem.splitScalar(u8, card, ':');
+        _ = headerAndData.next().?;
+        const data = headerAndData.next().?;
 
         var winningAndReceived = std.mem.splitScalar(u8, data, '|');
         const winning = try parseNumbers(winningAndReceived.next().?, 10);
         const received = try parseNumbers(winningAndReceived.next().?, 25);
 
-        sum += match(winning, received);
+        sum += matchReceivedWinningNumbers(winning, received);
     }
 
     std.debug.print("solution: {}\n", .{sum});
@@ -26,27 +25,27 @@ test "day 4, part 1" {
 }
 
 test "day 4, part 2" {
-    var it = try Input.readLines("src/day4.txt", testing.allocator);
-    defer it.deinit() catch unreachable;
+    var cards = try Input.readLines("src/day4.txt", testing.allocator);
+    defer cards.deinit() catch unreachable;
 
     var duplications = std.mem.zeroes([220]u32);
 
     var sum: u32 = 0;
     var i: u32 = 0;
-    while (it.next()) |line| {
-        var headerAndDate = std.mem.splitScalar(u8, line, ':');
-        const header = headerAndDate.next().?;
-        _ = header;
-        const data = headerAndDate.next().?;
+
+    while (cards.next()) |card| {
+        var headerAndData = std.mem.splitScalar(u8, card, ':');
+        _ = headerAndData.next().?;
+        const data = headerAndData.next().?;
 
         var winningAndReceived = std.mem.splitScalar(u8, data, '|');
         const winning = try parseNumbers(winningAndReceived.next().?, 10);
         const received = try parseNumbers(winningAndReceived.next().?, 25);
 
-        const count = countWinningReceived(winning, received);
+        const count = countReceivedWinningNumbers(winning, received);
 
-        for (0..count) |c| {
-            const index = i + c + 1;
+        for (1..count + 1) |offset| {
+            const index = i + offset;
             if (index > duplications.len) {
                 break;
             }
@@ -61,7 +60,7 @@ test "day 4, part 2" {
     try testing.expect(sum == 9425061);
 }
 
-fn countWinningReceived(winning: [10]u32, received: [25]u32) u10 {
+fn countReceivedWinningNumbers(winning: [10]u32, received: [25]u32) u10 {
     var count: u10 = 0;
 
     var r: u5 = 0;
@@ -82,7 +81,7 @@ fn countWinningReceived(winning: [10]u32, received: [25]u32) u10 {
     return count;
 }
 
-fn match(winning: [10]u32, received: [25]u32) u10 {
+fn matchReceivedWinningNumbers(winning: [10]u32, received: [25]u32) u10 {
     var score: u10 = 0;
 
     var r: u5 = 0;
