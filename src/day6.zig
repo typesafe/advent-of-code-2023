@@ -54,7 +54,7 @@ test "day 6, part 2 - naïve" {
     try testing.expect(score == 34655848);
 }
 
-test "day 6, part 2 O(n)" {
+test "day 6, part 2 O(1)" {
     // the distribution is a parabola with the maximum at T/2
     // so we can simply solve this equation
 
