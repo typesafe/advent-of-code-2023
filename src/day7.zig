@@ -60,6 +60,45 @@ fn parseHands(comptime T: type, lines: Input.InputIterator, allocator: std.mem.A
     return slice;
 }
 
+const Hand = struct {
+    cards: std.AutoHashMap(usize, usize),
+    strength: usize,
+    bid: usize,
+
+    pub fn init(data: []const u8, allocator: std.mem.Allocator) !Hand {
+        var cards = std.AutoHashMap(usize, usize).init(allocator);
+        var strength: usize = 0;
+
+        for (data[0..5], 0..) |card, exp| {
+            const val = cardValues.get(&.{card}).?;
+            strength += val * std.math.pow(usize, 15, 4 - exp);
+            const count = if (cards.get(val)) |count| count else 0;
+            try cards.put(val, count + 1);
+        }
+
+        var it = cards.valueIterator();
+        while (it.next()) |count| {
+            if (count.* > 1) {
+                strength += @as(usize, count.*) * std.math.pow(usize, 15, 4 + count.*);
+            }
+        }
+
+        return Hand{
+            .cards = cards,
+            .strength = strength,
+            .bid = @as(usize, @bitCast(Input.parseInt(data[6..]))),
+        };
+    }
+
+    pub fn deinit(self: *Hand) void {
+        self.cards.deinit();
+    }
+
+    fn sort(_: void, a: Hand, b: Hand) bool {
+        return a.strength < b.strength;
+    }
+};
+
 const HandWithJokers = struct {
     input: []const u8,
     cards: std.AutoHashMap(usize, usize),
@@ -120,45 +159,6 @@ const HandWithJokers = struct {
     }
 };
 
-const Hand = struct {
-    cards: std.AutoHashMap(usize, usize),
-    strength: usize,
-    bid: usize,
-
-    pub fn init(data: []const u8, allocator: std.mem.Allocator) !Hand {
-        var cards = std.AutoHashMap(usize, usize).init(allocator);
-        var strength: usize = 0;
-
-        for (data[0..5], 0..) |card, exp| {
-            const val = cardValues.get(&.{card}).?;
-            strength += val * std.math.pow(usize, 15, 4 - exp);
-            const count = if (cards.get(val)) |count| count else 0;
-            try cards.put(val, count + 1);
-        }
-
-        var it = cards.valueIterator();
-        while (it.next()) |count| {
-            if (count.* > 1) {
-                strength += @as(usize, count.*) * std.math.pow(usize, 15, 4 + count.*);
-            }
-        }
-
-        return Hand{
-            .cards = cards,
-            .strength = strength,
-            .bid = @as(usize, @bitCast(Input.parseInt(data[6..]))),
-        };
-    }
-
-    pub fn deinit(self: *Hand) void {
-        self.cards.deinit();
-    }
-
-    fn sort(_: void, a: Hand, b: Hand) bool {
-        return a.strength < b.strength;
-    }
-};
-
 const cardValues = std.ComptimeStringMap(usize, .{
     .{ "2", 2 },
     .{ "3", 3 },
@@ -190,15 +190,3 @@ const cardValuesWithJoker = std.ComptimeStringMap(usize, .{
     .{ "K", 13 },
     .{ "A", 14 },
 });
-
-// '2' -> 48
-// '3' -> 49
-// ...
-// '9' -> 57
-// 'A' -> 65
-// 'B' -> 66
-// 'C' -> 67
-// 'D' -> 68
-// 'E' -> 69
-// 'F' -> 70
-// 'T' -> 84
