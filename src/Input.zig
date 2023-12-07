@@ -13,9 +13,9 @@ pub fn readFile(path: []const u8, allocator: std.mem.Allocator) ![]const u8 {
 }
 
 pub fn readLines(path: []const u8, allocator: std.mem.Allocator) !InputIterator {
-    const buffer = readFile(path, allocator);
+    const buffer = try readFile(path, allocator);
 
-    return InputIterator.init(buffer, allocator);
+    return try InputIterator.init(buffer, allocator);
 }
 
 pub fn parseInts(iterator: anytype, comptime len: usize) [len]isize {
