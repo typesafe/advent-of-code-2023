@@ -18,6 +18,51 @@ pub fn readLines(path: []const u8, allocator: std.mem.Allocator) !InputIterator 
     return try InputIterator.init(buffer, allocator);
 }
 
+pub fn readGrid(path: []const u8, width: usize, height: usize, allocator: std.mem.Allocator) !Grid {
+    const buffer = try readFile(path, allocator);
+
+    return Grid.init(buffer, width, height, allocator);
+}
+
+pub const Grid = struct {
+    const Self = @This();
+
+    allocator: std.mem.Allocator,
+    buffer: []const u8,
+    width: usize,
+    height: usize,
+
+    pub fn init(buffer: []const u8, width: usize, height: usize, allocator: std.mem.Allocator) Self {
+        return Self{
+            .allocator = allocator,
+            .buffer = buffer,
+            .width = width,
+            .height = height,
+        };
+    }
+
+    pub fn get(self: Self, x: usize, y: usize) u8 {
+        return self.buffer[x + y * (self.width + 1)]; // +1 for the '\n' delimiter
+    }
+
+    pub fn deinit(self: Self) void {
+        self.allocator.free(self.buffer);
+    }
+};
+
+pub fn readLinesAsSlice(path: []const u8, allocator: std.mem.Allocator) ![][]const u8 {
+    var lines = try readLines(path, allocator);
+    defer lines.deinit() catch unreachable;
+
+    var list = std.ArrayList([]const u8).init(allocator);
+
+    while (lines.next()) |line| {
+        try list.append(try allocator.dupe(u8, line));
+    }
+
+    return list.toOwnedSlice();
+}
+
 pub fn parseInts(iterator: anytype, comptime len: usize) [len]isize {
     var result: [len]isize = undefined;
     var it = iterator;
