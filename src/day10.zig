@@ -6,7 +6,6 @@ test "day 10, part 1" {
     var aa = std.heap.ArenaAllocator.init(testing.allocator);
     defer aa.deinit();
     const allocator = aa.allocator();
-    _ = allocator;
 
     const grid = try Input.readGrid("src/day10.txt", 140, 140, testing.allocator);
     defer grid.deinit();
@@ -24,19 +23,73 @@ test "day 10, part 1" {
         }
     }
 
-    const solution = try walkLoop(start, grid) / 2;
+    const solution = (try walkLoop(start, grid, allocator));
 
-    std.debug.print("solution: {any}\n", .{solution});
-    try testing.expect(solution == 6886);
+    std.debug.print("solution: {any}\n", .{solution.count() / 2});
+    try testing.expect(solution.count() / 2 == 6886);
 }
 
-fn walkLoop(start: [2]usize, grid: Input.Grid) !usize {
+test "day 10, part 2" {
+    var aa = std.heap.ArenaAllocator.init(testing.allocator);
+    defer aa.deinit();
+    const allocator = aa.allocator();
+
+    const grid = try Input.readGrid("src/day10.txt", 140, 140, testing.allocator);
+    defer grid.deinit();
+
+    const start = findStart(grid);
+
+    const nodes = (try walkLoop(start, grid, allocator));
+
+    var nodesInside: usize = 0;
+
+    for (0..140) |y| {
+        // while going through a row, we can keep track of wether we went inside or not
+        // by toggling the value on the relevant boundaries
+        var inside: bool = false;
+
+        for (0..140) |x| {
+            const node = grid.get(x, y);
+            const boundary = nodes.contains(.{ x, y });
+
+            if (boundary and (node == '|' or node == 'L' or node == 'J' or node == 'S')) {
+                inside = !inside;
+            }
+
+            if (inside and !boundary) {
+                nodesInside += 1;
+            }
+        }
+    }
+
+    std.debug.print("solution: {any}\n", .{nodesInside});
+    try testing.expect(nodesInside == 371);
+}
+
+fn findStart(grid: Input.Grid) [2]usize {
+    for (0..140) |y| {
+        for (0..140) |x| {
+            const node = grid.get(x, y);
+            if (node == 'S') {
+                return .{ x, y };
+            }
+        }
+    }
+
+    unreachable;
+}
+
+fn walkLoop(start: [2]usize, grid: Input.Grid, allocator: std.mem.Allocator) !std.AutoHashMap([2]usize, void) {
+    var nodes = std.AutoHashMap([2]usize, void).init(allocator);
     var current: [2]usize = start;
     var next = .{ start[0] + 1, start[1] };
 
     var steps: usize = 1;
 
+    try nodes.put(current, {});
+
     while (true) {
+        try nodes.put(next, {});
         if (std.mem.eql(usize, &next, &start)) {
             break;
         }
@@ -62,7 +115,7 @@ fn walkLoop(start: [2]usize, grid: Input.Grid) !usize {
         }
     }
 
-    return steps;
+    return nodes;
 }
 
 fn getNeighbours(s: u8) ?[2][2]isize {
